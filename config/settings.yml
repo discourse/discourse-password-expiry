@@ -1,0 +1,12 @@
+plugins:
+  password_expiry_enabled:
+    default: false
+  password_expiry_days:
+    default: 90
+  password_expiry_warning_days:
+    default: 7
+    client: true
+  password_expiry_message_days:
+    default: 7|3|2|1
+    type: list
+    list_type: compact

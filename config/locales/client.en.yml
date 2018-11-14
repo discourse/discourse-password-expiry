@@ -1,0 +1,7 @@
+en:
+  js:
+    password_expiry:
+      password_expire_warning: 
+        one: Your password will expire in less than %{count} day. <a href="/my/preferences/account">Click here to change it</a>.
+        other: Your password will expire in less than %{count} days. <a href="/my/preferences/account">Click here to change it</a>.
+      password_expired: Your password has expired. <a href="/my/preferences/account">Click here to change it</a>.
