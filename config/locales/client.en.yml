@@ -2,6 +2,9 @@ en:
   js:
     password_expiry:
       password_expire_warning: 
-        one: Your password will expire in less than %{count} day. <a href="%{base_path}/my/preferences/account">Click here to change it</a>.
-        other: Your password will expire in less than %{count} days. <a href="%{base_path}/my/preferences/account">Click here to change it</a>.
-      password_expired: Your password has expired. <a href="%{base_path}/my/preferences/account">Click here to change it</a>.
+        one: Your password will expire in less than %{count} day.
+        other: Your password will expire in less than %{count} days.
+      password_expired: Your password has expired.
+      change_password: "Send Reset Email"
+      sending_email: "Sending reset email..."
+      email_sent: "Reset email sent to %{email}. If it doesn't arrive, check your spam folder."
