@@ -3,13 +3,23 @@ en:
     password_expiry_enabled: Enable password expiry
     password_expiry_days: The number of days after which a password will expire
     password_expiry_warning_days: The number of days before expiry when a homepage banner will be displayed
-    password_expiry_message_days: The days before expiry when a personal message will be sent to the user, reminding them of password expiry.
-  system_messages:
-      password_expiry_notification:
-        subject_template: 
-          one: "Password expires in %{count} day"
-          other: "Password expires in %{count} days"
-        text_body_template: |
-          Your password is due to expire soon. [Reset it now](/my/preferences/account) to avoid losing access to the forum.
+    password_expiry_message_days: The days before expiry when an email will be sent to the user, reminding them of password expiry.
   login:
     password_expired: Your password has expired. Use the reset link below.
+
+  user_notifications:
+    password_expiry:
+      title: "Password Expiry"
+      subject_template: 
+        one: "[%{email_prefix}] Password expires in %{count} day"
+        other: "[%{email_prefix}] Password expires in %{count} days"
+      text_body_template: 
+        one: |
+          Your password on [%{site_name}](%{base_url}) is due to expire tomorrow. 
+          
+          [Click here](%{base_url}/u/password-reset/%{email_token}) to choose a new password now.
+        other: |
+          Your password on [%{site_name}](%{base_url}) is due to expire in %{count} days. 
+          
+          [Click here](%{base_url}/u/password-reset/%{email_token}) to choose a new password now.
+        

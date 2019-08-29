@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # name: discourse-password-expiry
 # about: Force users to change their password on a periodic basis
 # version: 1.0
@@ -22,6 +24,22 @@ after_initialize do
   end
 
   reloadable_patch do
+    module ::PasswordExpiryNotificationExtension
+      def password_expiry(user, opts = {})
+        build_email(
+          user.email,
+          template: "user_notifications.password_expiry",
+          locale: user_locale(user),
+          email_token: opts[:email_token],
+          count: ((user.password_expires_at - Time.now) / 1.day).ceil
+        )
+      end
+    end
+
+    ::UserNotifications.class_eval do
+      prepend PasswordExpiryNotificationExtension
+    end
+
     module ::LoginErrorCheckExpire
       private
       def login_error_check(user)
@@ -72,7 +90,15 @@ after_initialize do
             user = User.find(row.id)
             next if user.try(:is_anonymous_user) # From github.com/discourse/discourse-anonymous-user
             next if user.anonymous? # From core anonymous feature
-            SystemMessage.create_from_system_user(user, :password_expiry_notification, count: day)
+            next if user.staged?
+            next unless user.active
+
+            email_token = user.email_tokens.create(email: user.email)
+            Jobs.enqueue(:critical_user_email, type: :password_expiry,
+                                               user_id: user.id,
+                                               email_token: email_token.token
+                                              )
+
             UserCustomField.find_or_create_by!(user: user, name: custom_field_name).update(value: Time.zone.now)
           end
         end
