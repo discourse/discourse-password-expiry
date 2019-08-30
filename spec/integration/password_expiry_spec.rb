@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe "Password Expiry" do
@@ -42,7 +44,8 @@ describe "Password Expiry" do
     expect(session[:current_user_id]).to eq(user.id)
   end
 
-  describe "warning personal messages" do
+  describe "warning emails" do
+    before { Jobs.run_immediately! }
 
     it "sends a message on the defined days" do
       SiteSetting.password_expiry_days = 4
@@ -50,34 +53,35 @@ describe "Password Expiry" do
       user.update(created_at: 4.days.ago + 2.days + 12.hours)
       expect do
         Jobs::SendPasswordExpiryReminders.new.execute({})
-      end.to change { user.private_topics_count }.by 1
+      end.to change { EmailLog.count }.by(1) &
+             change { ActionMailer::Base.deliveries.count }.by(1)
 
-      topic = user.topics_allowed.where(archetype: Archetype.private_message).last
-      expect(topic.title).to eq(I18n.t("system_messages.password_expiry_notification.subject_template", count: 3))
+      email = ActionMailer::Base.deliveries.last
+      expect(email.subject).to eq(I18n.t("user_notifications.password_expiry.subject_template", email_prefix: "Discourse", count: 3))
 
       # Shouldn't send message twice in same day
       expect do
         Jobs::SendPasswordExpiryReminders.new.execute({})
-      end.to change { user.private_topics_count }.by 0
+      end.to change { EmailLog.count }.by 0
 
       # Should send message next day
       user.update(created_at: 4.days.ago + 1.days + 12.hours)
       expect do
         Jobs::SendPasswordExpiryReminders.new.execute({})
-      end.to change { user.private_topics_count }.by 1
+      end.to change { EmailLog.count }.by 1
 
-      topic = user.topics_allowed.where(archetype: Archetype.private_message).last
-      expect(topic.title).to eq(I18n.t("system_messages.password_expiry_notification.subject_template", count: 2))
+      email = ActionMailer::Base.deliveries.last
+      expect(email.subject).to eq(I18n.t("user_notifications.password_expiry.subject_template", email_prefix: "Discourse",  count: 2))
 
       # Should send the same message next time the password is due to expire
       freeze_time 1.week.from_now do
         user.update(created_at: 4.days.ago + 2.days + 12.hours)
         expect do
           Jobs::SendPasswordExpiryReminders.new.execute({})
-        end.to change { user.private_topics_count }.by 1
+        end.to change { EmailLog.count }.by 1
 
-        topic = user.topics_allowed.where(archetype: Archetype.private_message).last
-        expect(topic.title).to eq(I18n.t("system_messages.password_expiry_notification.subject_template", count: 3))
+        email = ActionMailer::Base.deliveries.last
+        expect(email.subject).to eq(I18n.t("user_notifications.password_expiry.subject_template", email_prefix: "Discourse",  count: 3))
       end
 
     end
