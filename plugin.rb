@@ -90,8 +90,7 @@ after_initialize do
             user = User.find(row.id)
             next if user.try(:is_anonymous_user) # From github.com/discourse/discourse-anonymous-user
             next if user.anonymous? # From core anonymous feature
-            next if user.staged?
-            next unless user.active
+            next if user.staged? || user.suspended? || !user.active
 
             email_token = user.email_tokens.create(email: user.email)
             Jobs.enqueue(:critical_user_email, type: :password_expiry,
