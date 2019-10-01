@@ -14,7 +14,7 @@ after_initialize do
   end
 
   add_to_serializer(:current_user, :password_expiry_warning) do
-    return false if object.anonymous? || object.try(:is_anonymous_user)
+    return false if object.anonymous? || object.try(:is_anonymous_moderator)
     object.password_expires_at - Time.zone.now < SiteSetting.password_expiry_warning_days.days
   end
 
@@ -88,7 +88,7 @@ after_initialize do
             custom_field_name: custom_field_name)
           users_to_message.each do |row|
             user = User.find(row.id)
-            next if user.try(:is_anonymous_user) # From github.com/discourse/discourse-anonymous-user
+            next if user.try(:is_anonymous_moderator) # From github.com/discourse/discourse-anonymous-moderators
             next if user.anonymous? # From core anonymous feature
             next if user.staged? || user.suspended? || !user.active
 
