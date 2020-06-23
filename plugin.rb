@@ -44,6 +44,7 @@ after_initialize do
       private
       def login_error_check(user)
         return super unless SiteSetting.password_expiry_enabled
+        return super unless params[:password] # Only apply on password-based logins
         return { error: I18n.t("login.password_expired") } if Time.zone.now > user.password_expires_at
         super
       end

@@ -44,6 +44,22 @@ describe "Password Expiry" do
     expect(session[:current_user_id]).to eq(user.id)
   end
 
+  it 'always works for email logins' do
+    SiteSetting.enable_local_logins_via_email = true
+    user.update(created_at: 1.year.ago)
+
+    # Confirm password has expired
+    post "/session.json", params: {
+      login: user.username, password: 'nobodyKnowsThis'
+    }
+    expect(session[:current_user_id]).to eq(nil)
+
+    # Now try with email login
+    post "/session/email-login/#{Fabricate(:email_token, user: user).token}.json"
+    expect(response.status).to eq(200)
+    expect(session[:current_user_id]).to eq(user.id)
+  end
+
   describe "warning emails" do
     before { Jobs.run_immediately! }
 
