@@ -1,4 +1,4 @@
-import { default as computed } from "ember-addons/ember-computed-decorators";
+import discourseComputed from "discourse-common/utils/decorators";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 
 export default Ember.Component.extend({
@@ -6,12 +6,12 @@ export default Ember.Component.extend({
   changed: false,
   sentToEmail: "",
 
-  @computed("currentUser.password_expires_at")
+  @discourseComputed("currentUser.password_expires_at")
   daysLeft(passwordExpiresAt) {
     return Math.ceil(moment(passwordExpiresAt).diff(moment(), "days", true));
   },
 
-  @computed("currentUser.password_expires_at")
+  @discourseComputed("currentUser.password_expires_at")
   expired(passwordExpiresAt) {
     return moment().isAfter(moment(passwordExpiresAt));
   },
