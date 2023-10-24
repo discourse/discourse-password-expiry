@@ -6,9 +6,8 @@ describe "Password Expiry" do
   before { SiteSetting.password_expiry_enabled = true }
 
   let(:user) do
-    user = Fabricate(:user, password: "nobodyKnowsThis", active: true)
-    token = user.email_tokens.find_by(email: user.email)
-    EmailToken.confirm(token.token)
+    user = Fabricate(:user, password: "nobodyKnowsThis")
+    user.activate
     user
   end
 
@@ -47,7 +46,7 @@ describe "Password Expiry" do
     expect(session[:current_user_id]).to eq(nil)
 
     # Now try with email login
-    post "/session/email-login/#{Fabricate(:email_token, user: user).token}.json"
+    post "/session/email-login/#{Fabricate(:email_token, user: user, scope: EmailToken.scopes[:email_login]).token}.json"
     expect(response.status).to eq(200)
     expect(session[:current_user_id]).to eq(user.id)
   end
