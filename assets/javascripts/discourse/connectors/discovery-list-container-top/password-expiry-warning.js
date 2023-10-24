@@ -19,5 +19,5 @@ export default {
       "expired",
       moment().isAfter(moment(component.get("currentUser.password_expires_at")))
     );
-  }
+  },
 };

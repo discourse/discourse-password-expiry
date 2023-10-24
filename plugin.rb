@@ -4,14 +4,12 @@
 # about: Force users to change their password on a periodic basis
 # version: 1.0
 # authors: David Taylor
-# url: https://github.com/discourse/discourse-password-expire
+# url: https://github.com/discourse/discourse-password-expiry
 
 enabled_site_setting :password_expiry_enabled
 
 after_initialize do
-  add_to_serializer(:current_user, :password_expires_at) do
-    object.password_expires_at
-  end
+  add_to_serializer(:current_user, :password_expires_at) { object.password_expires_at }
 
   add_to_serializer(:current_user, :password_expiry_warning) do
     return false if object.anonymous? || object.try(:is_anonymous_moderator)
@@ -19,7 +17,9 @@ after_initialize do
   end
 
   add_to_class(:user, :password_expires_at) do
-    last_changed = UserHistory.for(self, :change_password).order('created_at DESC').first&.created_at || created_at
+    last_changed =
+      UserHistory.for(self, :change_password).order("created_at DESC").first&.created_at ||
+        created_at
     last_changed + SiteSetting.password_expiry_days.days
   end
 
@@ -31,28 +31,27 @@ after_initialize do
           template: "user_notifications.password_expiry",
           locale: user_locale(user),
           email_token: opts[:email_token],
-          count: ((user.password_expires_at - Time.now) / 1.day).ceil
+          count: ((user.password_expires_at - Time.now) / 1.day).ceil,
         )
       end
     end
 
-    ::UserNotifications.class_eval do
-      prepend PasswordExpiryNotificationExtension
-    end
+    ::UserNotifications.class_eval { prepend PasswordExpiryNotificationExtension }
 
     module ::LoginErrorCheckExpire
       private
+
       def login_error_check(user)
         return super unless SiteSetting.password_expiry_enabled
         return super unless params[:password] # Only apply on password-based logins
-        return { error: I18n.t("login.password_expired") } if Time.zone.now > user.password_expires_at
+        if Time.zone.now > user.password_expires_at
+          return { error: I18n.t("login.password_expired") }
+        end
         super
       end
     end
 
-    ::SessionController.class_eval do
-      prepend LoginErrorCheckExpire
-    end
+    ::SessionController.class_eval { prepend LoginErrorCheckExpire }
   end
 
   module ::Jobs
@@ -82,11 +81,14 @@ after_initialize do
 
         days_before.each do |day|
           custom_field_name = "password_reminder_day_#{day}"
-          users_to_message = DB.query(sql,
-            action_id: UserHistory.actions[:change_password],
-            last_changed_after: expiry_threshold + day.days - 1.day,
-            last_changed_before: expiry_threshold + day.days,
-            custom_field_name: custom_field_name)
+          users_to_message =
+            DB.query(
+              sql,
+              action_id: UserHistory.actions[:change_password],
+              last_changed_after: expiry_threshold + day.days - 1.day,
+              last_changed_before: expiry_threshold + day.days,
+              custom_field_name: custom_field_name,
+            )
           users_to_message.each do |row|
             user = User.find(row.id)
             next if user.try(:is_anonymous_moderator) # From github.com/discourse/discourse-anonymous-moderators
@@ -94,12 +96,16 @@ after_initialize do
             next if user.staged? || user.suspended? || !user.active
 
             email_token = user.email_tokens.create(email: user.email)
-            Jobs.enqueue(:critical_user_email, type: :password_expiry,
-                                               user_id: user.id,
-                                               email_token: email_token.token
-                                              )
+            Jobs.enqueue(
+              :critical_user_email,
+              type: :password_expiry,
+              user_id: user.id,
+              email_token: email_token.token,
+            )
 
-            UserCustomField.find_or_create_by!(user: user, name: custom_field_name).update(value: Time.zone.now)
+            UserCustomField.find_or_create_by!(user: user, name: custom_field_name).update(
+              value: Time.zone.now,
+            )
           end
         end
       end
