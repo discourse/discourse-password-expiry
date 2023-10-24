@@ -1,7 +1,8 @@
-import discourseComputed from "discourse-common/utils/decorators";
+import Component from "@ember/component";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import discourseComputed from "discourse-common/utils/decorators";
 
-export default Ember.Component.extend({
+export default Component.extend({
   changing: false,
   changed: false,
   sentToEmail: "",
@@ -19,7 +20,7 @@ export default Ember.Component.extend({
   actions: {
     changePassword() {
       this.set("changing", true);
-      this.currentUser.findDetails().then(user => {
+      this.currentUser.findDetails().then((user) => {
         this.set("sentToEmail", user.email);
         user
           .changePassword()
@@ -27,6 +28,6 @@ export default Ember.Component.extend({
           .catch(popupAjaxError)
           .finally(() => this.set("changing", false));
       });
-    }
-  }
+    },
+  },
 });
