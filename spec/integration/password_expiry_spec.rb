@@ -73,9 +73,9 @@ describe "Password Expiry" do
       )
 
       # Shouldn't send message twice in same day
-      expect do Jobs::SendPasswordExpiryReminders.new.execute({}) end.to change {
+      expect do Jobs::SendPasswordExpiryReminders.new.execute({}) end.not_to change {
         EmailLog.count
-      }.by 0
+      }
 
       # Should send message next day
       user.update(created_at: 4.days.ago + 1.days + 12.hours)
