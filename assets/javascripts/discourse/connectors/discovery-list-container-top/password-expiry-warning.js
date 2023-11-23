@@ -1,23 +1,6 @@
-export default {
-  shouldRender(args, component) {
-    return !!component.get("currentUser.password_expiry_warning");
-  },
+import Component from "@glimmer/component";
+import { inject as service } from "@ember/service";
 
-  setupComponent(args, component) {
-    component.set(
-      "daysLeft",
-      Math.ceil(
-        moment(component.get("currentUser.password_expires_at")).diff(
-          moment(),
-          "days",
-          true
-        )
-      )
-    );
-
-    component.set(
-      "expired",
-      moment().isAfter(moment(component.get("currentUser.password_expires_at")))
-    );
-  },
-};
+export default class extends Component {
+  @service currentUser;
+}
