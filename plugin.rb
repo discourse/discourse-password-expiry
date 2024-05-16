@@ -36,7 +36,7 @@ after_initialize do
       end
     end
 
-    ::UserNotifications.class_eval { prepend PasswordExpiryNotificationExtension }
+    ::UserNotifications.prepend(PasswordExpiryNotificationExtension)
 
     module ::LoginErrorCheckExpire
       private
@@ -51,7 +51,7 @@ after_initialize do
       end
     end
 
-    ::SessionController.class_eval { prepend LoginErrorCheckExpire }
+    ::SessionController.prepend(LoginErrorCheckExpire)
   end
 
   module ::Jobs
