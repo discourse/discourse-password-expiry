@@ -77,7 +77,7 @@ describe "Password Expiry" do
       }
 
       # Should send message next day
-      user.update(created_at: 4.days.ago + 1.days + 12.hours)
+      user.update(created_at: 4.days.ago + 1.day + 12.hours)
       expect do Jobs::SendPasswordExpiryReminders.new.execute({}) end.to change {
         EmailLog.count
       }.by 1
