@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 describe "Password Expiry" do
   before { SiteSetting.password_expiry_enabled = true }
 
