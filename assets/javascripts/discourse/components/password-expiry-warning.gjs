@@ -1,8 +1,8 @@
+/* eslint-disable ember/no-classic-components, ember/require-tagless-components */
 import Component from "@ember/component";
 import { on } from "@ember/modifier";
-import { action } from "@ember/object";
+import { action, computed } from "@ember/object";
 import { popupAjaxError } from "discourse/lib/ajax-error";
-import discourseComputed from "discourse/lib/decorators";
 import { i18n } from "discourse-i18n";
 
 export default class PasswordExpiryWarning extends Component {
@@ -10,14 +10,16 @@ export default class PasswordExpiryWarning extends Component {
   changed = false;
   sentToEmail = "";
 
-  @discourseComputed("currentUser.password_expires_at")
-  daysLeft(passwordExpiresAt) {
-    return Math.ceil(moment(passwordExpiresAt).diff(moment(), "days", true));
+  @computed("currentUser.password_expires_at")
+  get daysLeft() {
+    return Math.ceil(
+      moment(this.currentUser?.password_expires_at).diff(moment(), "days", true)
+    );
   }
 
-  @discourseComputed("currentUser.password_expires_at")
-  expired(passwordExpiresAt) {
-    return moment().isAfter(moment(passwordExpiresAt));
+  @computed("currentUser.password_expires_at")
+  get expired() {
+    return moment().isAfter(moment(this.currentUser?.password_expires_at));
   }
 
   @action
